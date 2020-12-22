@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/../../aws-glue-poc/work.iml" filepath="$PROJECT_DIR$/../../aws-glue-poc/work.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../aws-glue-poc/aws-glue-poc.iml" filepath="$PROJECT_DIR$/../aws-glue-poc/aws-glue-poc.iml" />
     </modules>
   </component>
 </project>
