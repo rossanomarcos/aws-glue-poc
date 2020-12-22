@@ -1,0 +1,34 @@
+import com.amazonaws.services.glue.GlueContext
+import com.amazonaws.services.glue.MappingSpec
+import com.amazonaws.services.glue.errors.CallSite
+import com.amazonaws.services.glue.util.GlueArgParser
+import com.amazonaws.services.glue.util.Job
+import com.amazonaws.services.glue.util.JsonOptions
+import org.apache.spark.SparkContext
+import scala.collection.JavaConverters._
+
+object GlueApp {
+  def main(sysArgs: Array[String]) {
+    val spark: SparkContext = new SparkContext()
+    val glueContext: GlueContext = new GlueContext(spark)
+    // @params: [JOB_NAME]
+    val args = GlueArgParser.getResolvedOptions(sysArgs, Seq("JOB_NAME").toArray)
+    Job.init(args("JOB_NAME"), glueContext, args.asJava)
+    // @type: DataSource
+    // @args: [database = "poc-glue-db", table_name = "poc_s3_storecsvdata", transformation_ctx = "datasource0"]
+    // @return: datasource0
+    // @inputs: []
+    val datasource0 = glueContext.getCatalogSource(database = "poc-glue-db", tableName = "poc_s3_storecsvdata", redshiftTmpDir = "", transformationContext = "datasource0").getDynamicFrame()
+    // @type: ApplyMapping
+    // @args: [mapping = [("dispatching_base_num", "string", "dispatching_base_num", "string"), ("pickup_date", "string", "pickup_date", "string"), ("locationid", "string", "locationid", "string")], transformation_ctx = "applymapping1"]
+    // @return: applymapping1
+    // @inputs: [frame = datasource0]
+    val applymapping1 = datasource0.applyMapping(mappings = Seq(("dispatching_base_num", "string", "dispatching_base_num", "string"), ("pickup_date", "string", "pickup_date", "string"), ("locationid", "string", "locationid", "string")), caseSensitive = false, transformationContext = "applymapping1")
+    // @type: DataSink
+    // @args: [connection_type = "s3", connection_options = {"path": "s3://poc-s3-transformedfiles"}, format = "json", transformation_ctx = "datasink2"]
+    // @return: datasink2
+    // @inputs: [frame = applymapping1]
+    val datasink2 = glueContext.getSinkWithFormat(connectionType = "s3", options = JsonOptions("""{"path": "s3://poc-s3-transformedfiles"}"""), transformationContext = "datasink2", format = "json").writeDynamicFrame(applymapping1)
+    Job.commit()
+  }
+}
